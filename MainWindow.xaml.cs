@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System.Media;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -42,6 +44,9 @@ namespace Tetris
         };
 
         private readonly Image[,] _imageControls;
+        private readonly int maxDelay = 1000;
+        private readonly int minDelay = 150;
+        private readonly int delayDecrease = 25;
 
         private GameState _gameState = new GameState();
 
@@ -50,7 +55,9 @@ namespace Tetris
         {
             InitializeComponent();
             _imageControls = SetupGameCanvas(_gameState.GameGrid);
+
         }
+       
 
         private Image[,] SetupGameCanvas(GameGrid grid) // This will create a 2d array for every cell in the game
         {
@@ -86,15 +93,17 @@ namespace Tetris
                 {
                     int id = grid[row, column]; // Get the id of each tile
                     _imageControls[row, column].Source = _tileImages[id]; // Set the tile's background to the id's associated image
+                    _imageControls[row, column].Opacity = 1; // undo ghost block
                 }
             }
         }
 
         private void DrawBlock(Tetris.Blocks.Block block)
         {
-            foreach(Position p in block.TilePositions())
+            foreach (Position p in block.TilePositions())
             {
                 _imageControls[p.Row, p.Column].Source = _tileImages[block.Id]; // Set the tile's background to the id's associated image
+                _imageControls[p.Row, p.Column].Opacity = 1; // undo ghost block
             }
         }
 
@@ -115,9 +124,22 @@ namespace Tetris
                 HoldImage.Source = _blockImages[heldBlock.Id];
             }
         }
+
+        private void DrawGhostBlock(Block block) // This will let us see where we're dropping our block
+        {
+            int dropDistance = _gameState.BlockDropDistance();
+
+            foreach(Position p in block.TilePositions())
+            {
+                _imageControls[p.Row + dropDistance, p.Column].Opacity = 0.25; // We reset the opacity within the draw grid and block functions
+                _imageControls[p.Row + dropDistance, p.Column].Source = _tileImages[block.Id];
+            }
+        }
+
         private void Draw(GameState gameState) // Draw the game
         {
             DrawGrid(gameState.GameGrid);
+            DrawGhostBlock(gameState.CurrentBlock);
             DrawBlock(gameState.CurrentBlock);
             DrawNextBlock(gameState.BlockQueue);
             DrawHeldBlock(gameState.HeldBlock);
@@ -128,9 +150,12 @@ namespace Tetris
         {
             Draw(_gameState); // Draw the game
 
+            
+
             while (!_gameState.GameOver)
             {
-                await Task.Delay(500); // This is the delay between the block going down automatically
+                int delay = Math.Max(minDelay, maxDelay - (_gameState.Score * delayDecrease));
+                await Task.Delay(delay); // This is the delay between the block going down automatically
                 _gameState.MoveBlockDown();
                 Draw(_gameState);
             }
