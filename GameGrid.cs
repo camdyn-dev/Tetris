@@ -93,7 +93,7 @@ namespace Tetris
                 }
                 else if(clearedRows > 0) // Otherwise, if this row is not to be cleared
                 {
-                    MoveRowDown(Rows, clearedRows); // Move it downwards
+                    MoveRowDown(row, clearedRows); // Move it downwards
                 }
             }
             return clearedRows; // Return the number of rows we cleared (for scorekeeping purposes)

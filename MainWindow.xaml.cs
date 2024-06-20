@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Tetris.Blocks;
+using Block = Tetris.Blocks.Block;
 namespace Tetris
 {
     /// <summary>
@@ -65,8 +66,9 @@ namespace Tetris
                         Width = cellSize,
                         Height = cellSize,
                     };
-
-                    Canvas.SetTop(imageControl, (row - 2) * cellSize); // We'll have two rows of padding for block spawning
+                    
+                    // The +10 will let us see just a tiny bit of the hidden row, letting us see what block ended our game
+                    Canvas.SetTop(imageControl, (row - 2) * cellSize + 10); // We'll have two rows of padding for block spawning
                     Canvas.SetLeft(imageControl, column  * cellSize); 
 
                     GameCanvas.Children.Add(imageControl);
@@ -96,10 +98,30 @@ namespace Tetris
             }
         }
 
+        private void DrawNextBlock(BlockQueue blockQueue)
+        {
+            Tetris.Blocks.Block next = blockQueue.NextBlock;
+            NextImage.Source = _blockImages[next.Id];
+        }
+
+        private void DrawHeldBlock(Block heldBlock)
+        {
+            if (heldBlock == null)
+            {
+                HoldImage.Source = _blockImages[0];
+            }
+            else
+            {
+                HoldImage.Source = _blockImages[heldBlock.Id];
+            }
+        }
         private void Draw(GameState gameState) // Draw the game
         {
             DrawGrid(gameState.GameGrid);
             DrawBlock(gameState.CurrentBlock);
+            DrawNextBlock(gameState.BlockQueue);
+            DrawHeldBlock(gameState.HeldBlock);
+            ScoreText.Text = $"Score: {gameState.Score}";
         }
 
         private async Task GameLoop()
@@ -114,6 +136,7 @@ namespace Tetris
             }
 
             GameOverMenu.Visibility = Visibility.Visible;
+            FinalScoreText.Text = $"Score: {_gameState.Score}";
         }
 
 
@@ -144,9 +167,13 @@ namespace Tetris
                     _gameState.MoveBlockDown();
                     break;
 
-                // Clockwise rotation
+                // Hard drop
                 case Key.Up:
                 case Key.W:
+                    _gameState.HardDropBlock();
+                    break;
+
+                // Clockwise rotation
                 case Key.E:
                     _gameState.RotateBlockClockwise();
                     break;
@@ -155,6 +182,11 @@ namespace Tetris
                 case Key.Z:
                 case Key.Q:
                     _gameState.RotateBlockCounterClockwise();
+                    break;
+
+                // Hold block
+                case Key.F:
+                    _gameState.HoldBlock();
                     break;
 
                 default:
