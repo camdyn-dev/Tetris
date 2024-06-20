@@ -15,7 +15,8 @@
              * - - - - | O O I O | O O O O | O I O O
              * O O O O | O O I O | - - - - | O I O O
              * O O O O | O O I O | O O O O | O I O O
-             * 
+             *  
+
              */
         };
     }
