@@ -15,9 +15,12 @@
              * - - - - | O O I O | O O O O | O I O O
              * O O O O | O O I O | - - - - | O I O O
              * O O O O | O O I O | O O O O | O I O O
-             *  
-
+             *
              */
         };
+
+        public override int Id => 1; // Our first piece
+        protected override Position StartOffset => new Position(-1, 3); // This will make it spawn in the middle of the top row
+        protected override Position[][] Tiles => tiles;
     }
 }
